@@ -4,32 +4,36 @@ on:
   - push
   - pull_request
 
+permissions:
+  contents: read
+
 jobs:
   build:
 
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.5', '3.6', '3.7', '3.8', '3.9']
+        # Python 3.5--3.8 are no longer provided by GitHub-hosted runners.
+        python-version: ['3.9', '3.11', '3.13']
         os:
           - ubuntu-latest
           - macOS-latest
-          # - windows-latest
 
     name: Test on ${{ matrix.python-version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
+        cache: pip
+        cache-dependency-path: requirements-dev.txt
     - name: Install dev deps
       run: |
-        pip install codecov
-        pip install -r requirements-dev.txt
-        python setup.py develop
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements-dev.txt
+        python -m pip install -e .
     - name: Run tests
       run: python -m pytest
-    - name: Upload test results
-      run: codecov
