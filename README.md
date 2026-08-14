@@ -1,6 +1,6 @@
 # `tvnamer`
 
-[![PyPI][pypi-img]][pypi-link] [![Build Status][build-img]][build-link] [![codecov][coverage-img]][coverage-link]
+[![PyPI][pypi-img]][pypi-link] [![CI](https://github.com/marukuru/tvnamer/actions/workflows/main.yml/badge.svg)](https://github.com/marukuru/tvnamer/actions/workflows/main.yml) [![codecov][coverage-img]][coverage-link]
 
 `tvnamer` is a utility to rename files from `some.show.s01e03.blah.abc.avi` to `Some Show - [01x03] - The Episode Name.avi` (by retrieving the episode name from [TheTVDB API v4](https://thetvdb.com/api-information)).
 
