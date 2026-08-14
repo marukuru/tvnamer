@@ -37,7 +37,15 @@ class Tvdb(object):
                  search_all_languages=True, session=None, base_url=BASE_URL):
         self.apikey = apikey
         self.interactive = interactive
-        self.language = language
+        
+        # Map legacy 2-letter language codes to TVDB v4 3-letter codes
+        lang_map = {
+            "en": "eng", "fr": "fra", "es": "spa", "it": "ita", "de": "deu",
+            "ru": "rus", "pt": "por", "nl": "nld", "da": "dan", "fi": "fin",
+            "sv": "swe", "no": "nor", "cs": "ces", "pl": "pol", "hu": "hun",
+            "el": "ell", "ja": "jpn", "zh": "zho", "ko": "kor"
+        }
+        self.language = lang_map.get(language.lower(), language)
         self.dvdorder = dvdorder
         self.search_all_languages = search_all_languages
         self.session = session or requests.Session()
@@ -95,8 +103,19 @@ class Tvdb(object):
         page = 0
         episodes = []
         while page is not None:
-            data, links = self._get("/series/%s/episodes/%s" % (series_id, season_type), page=page, lang=self.language)
-            episodes.extend(data.get("episodes", []) if isinstance(data, dict) else (data or []))
+            default_data, links = self._get("/series/%s/episodes/%s" % (series_id, season_type), page=page)
+            default_eps = default_data.get("episodes", []) if isinstance(default_data, dict) else (default_data or [])
+            
+            translated_data, _ = self._get("/series/%s/episodes/%s/%s" % (series_id, season_type, self.language), page=page)
+            translated_eps = translated_data.get("episodes", []) if isinstance(translated_data, dict) else (translated_data or [])
+            
+            trans_map = {ep["id"]: ep for ep in translated_eps if ep.get("id")}
+            for default_ep in default_eps:
+                trans_ep = trans_map.get(default_ep.get("id"))
+                if trans_ep and trans_ep.get("name"):
+                    default_ep["name"] = trans_ep["name"]
+            
+            episodes.extend(default_eps)
             next_page = links.get("next")
             if isinstance(next_page, int):
                 page = next_page
