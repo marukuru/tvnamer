@@ -131,6 +131,7 @@ def run_tvnamer(with_files, with_flags = None, with_input = "", with_config = No
     # test environmen
     env = os.environ.copy()
     env['PYTHONPATH'] = ":".join(sys.path)
+    env['HOME'] = episodes_location
     if with_coverage:
         # Get path to .coveragerc in parent dir
         covconf = os.path.abspath(

@@ -398,12 +398,17 @@ def tvnamer(paths):
     else:
         dvdorder = False
 
-    api_key = Config["tvdb_api_key"]
+    api_key = os.environ.get("TVDB_API_KEY")
+    if api_key:
+        LOG.debug("Using TheTVDB API key from environment: %s", api_key)
+    else:
+        api_key = Config["tvdb_api_key"]
+        LOG.debug("Using TheTVDB API key from config: %s", api_key)
+
     if not api_key:
         raise ConfigValueError(
-            "tvdb_api_key must be set in your tvnamer.json configuration file"
+            "tvdb_api_key must be set in your tvnamer.json configuration file or TVDB_API_KEY environment variable"
         )
-    LOG.debug("Using TheTVDB API key from config: %s", api_key)
 
     tvdb_instance = tvdb_v4.Tvdb(
         interactive=not Config["select_first"],

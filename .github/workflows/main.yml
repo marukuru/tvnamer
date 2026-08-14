@@ -36,4 +36,6 @@ jobs:
         python -m pip install -r requirements-dev.txt
         python -m pip install -e .
     - name: Run tests
+      env:
+        TVDB_API_KEY: ${{ secrets.TVDB_API_KEY }}
       run: python -m pytest
