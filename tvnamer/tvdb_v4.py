@@ -51,6 +51,7 @@ class Tvdb(object):
         self.session = session or requests.Session()
         self.base_url = base_url.rstrip("/")
         self._series = {}
+        self._search_cache = {}
         self._login()
 
     def _login(self):
@@ -146,6 +147,9 @@ class Tvdb(object):
         return self._series[series_id]
 
     def search(self, query):
+        if query in self._search_cache:
+            return self.get_series(self._search_cache[query])
+
         # The v4 endpoint searches every language unless explicitly filtered.
         data, _ = self._get(
             "/search", query=query, type="series",
@@ -155,4 +159,6 @@ class Tvdb(object):
         series_id = selected.get("tvdb_id") or selected.get("id")
         if series_id is None:
             raise ShowNotFound("Search result for %s did not include a series ID" % query)
+            
+        self._search_cache[query] = series_id
         return self.get_series(series_id, selected.get("name"))
