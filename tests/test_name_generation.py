@@ -15,7 +15,7 @@ from test_files import files
 from tvnamer.tvdb_v4 import Series
 
 
-class TestTvdb(object):
+class FixtureTvdb(object):
     """Deterministic v4-shaped data generated from the test expectations."""
     def __init__(self, test):
         self.test = test
@@ -51,7 +51,7 @@ def verify_name_gen(curtest):
             seriesname = curtest['parsedseriesname'],
             episodenumbers = curtest['episodenumbers'])
 
-    ep.populate_from_tvdb(TestTvdb(curtest), force_name=curtest.get("force_name"))
+    ep.populate_from_tvdb(FixtureTvdb(curtest), force_name=curtest.get("force_name"))
 
     assert ep.seriesname is not None, "Corrected series name was none"
     assert ep.episodename is not None, "Episode name was None"
