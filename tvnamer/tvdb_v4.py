@@ -88,7 +88,7 @@ class Tvdb(object):
         print("TVDB Search Results:")
         for number, item in enumerate(series, 1):
             print("%d -> %s [%s] # https://thetvdb.com/series/%s" % (
-                number, item.get("name", "Unknown"), item.get("language", ""),
+                number, item.get("name", "Unknown"), item.get("primary_language", ""),
                 item.get("tvdb_id", item.get("id")),
             ))
         print("Enter the number of the correct series (or anything else to skip):")
