@@ -358,6 +358,19 @@ defaults = {
         \]?                                      # ] optional
         [^\\/]*$''',
 
+        # foo.1999.s01e01, where 1999 is the show's release year.
+        # Require a letter before the year so numeric titles such as
+        # "123 2008" keep the year as part of their series name.
+        r'''^(?P<seriesname>.+?[^\d\W_])
+        [ \._\-]
+        (?:19|20)\d{2}                           # release year (ignored)
+        [ \._\-]
+        \[?
+        [Ss](?P<seasonnumber>[0-9]+)[ ]?[\._\- ]?[ ]?
+        [Ee]?(?P<episodenumber>[0-9]+)
+        \]?
+        [^\\/]*$''',
+
         # foo.s01.e01, foo.s01_e01, "foo.s01 - e01"
         r'''^((?P<seriesname>.+?)[ \._\-])?
         \[?

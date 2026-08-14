@@ -43,6 +43,7 @@ def test_autogen_names():
         '%(seriesname)s - s%(seasno)de%(epno)d - dsr.nf.avi',             # seriesname - s01e02 - dsr.nf.avi
         '%(seriesname)s - s%(seasno)de%(epno)d - the wrong ep name.avi',  # seriesname - s01e02 - the wrong ep name.avi
         '%(seriesname)s - s%(seasno)de%(epno)d - the wrong ep name.avi',  # seriesname - s01e02 - the_wrong_ep_name!.avi
+        '%(seriesname)s %(year)d S%(seasno)02dE%(epno)02d ep name.mkv',     # seriesname year s01e02 epname.mkv
     ]
 
     test_data = [
@@ -69,6 +70,10 @@ def test_autogen_names():
     {'name': 'test_name_parser_shownumericspaces',
     'description': 'Tests with numeric show name, with spaces',
     'name_data': {'seriesname': '123 2008'}},
+
+    {'name': 'test_name_parser_release_year_before_season_episode',
+    'description': 'Tests release year before season and episode numbers',
+    'name_data': {'seriesname': 'Futurama', 'year': 1999}},
     ]
 
     for cdata in test_data:
@@ -82,7 +87,11 @@ def test_autogen_names():
                     name_data['seasno'] = seas
                     name_data['epno'] = ep
 
-                    names = [x % name_data for x in name_formats]
+                    names = [
+                        pattern % name_data
+                        for pattern in name_formats
+                        if '%(year)' not in pattern or 'year' in name_data
+                    ]
 
                     for cur in names:
                         p = FileParser(cur).parse()
