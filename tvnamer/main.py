@@ -15,8 +15,8 @@ except ImportError:
 
 import json
 
-import tvdb_api
 from typing import List, Union, Optional
+from tvnamer import tvdb_v4
 
 from tvnamer import cliarg_parser, __version__
 from tvnamer.config_defaults import defaults
@@ -45,14 +45,11 @@ from tvnamer.tvnamer_exceptions import (
     SkipBehaviourAbort,
     InvalidFilename,
     DataRetrievalError,
+    ConfigValueError,
 )
 
 
 LOG = logging.getLogger(__name__)
-
-
-# Key for use in tvnamer only - other keys can easily be registered at https://thetvdb.com/api-information
-TVNAMER_API_KEY = "fb51f9b848ffac9750bada89ecba0225"
 
 
 def get_move_destination(episode):
@@ -190,7 +187,7 @@ def confirm(question, options, default="y"):
 
 
 def process_file(tvdb_instance, episode):
-    # type: (tvdb_api.Tvdb, BaseInfo) -> None
+    # type: (tvdb_v4.Tvdb, BaseInfo) -> None
     """Gets episode name, prompts user for input
     """
     print("#" * 20)
@@ -401,25 +398,18 @@ def tvnamer(paths):
     else:
         dvdorder = False
 
-    if Config["tvdb_api_key"] is not None:
-        LOG.debug("Using custom API key from config")
-        api_key = Config["tvdb_api_key"]
-    else:
-        LOG.debug("Using tvnamer default API key")
-        api_key = TVNAMER_API_KEY
+    api_key = Config["tvdb_api_key"]
+    if not api_key:
+        raise ConfigValueError(
+            "tvdb_api_key must be set in your tvnamer.json configuration file"
+        )
+    LOG.debug("Using TheTVDB API key from config: %s", api_key)
 
-    if os.getenv("TVNAMER_TEST_MODE", "0") == "1":
-        from .test_cache import get_test_cache_session
-        cache = get_test_cache_session()
-    else:
-        cache = True
-
-    tvdb_instance = tvdb_api.Tvdb(
+    tvdb_instance = tvdb_v4.Tvdb(
         interactive=not Config["select_first"],
         search_all_languages=Config["search_all_languages"],
         language=Config["language"],
         dvdorder=dvdorder,
-        cache=cache,
         apikey=api_key,
     )
 
@@ -441,7 +431,7 @@ def main():
 
     if opts.show_version:
         print("tvnamer version: %s" % (__version__,))
-        print("tvdb_api version: %s" % (tvdb_api.__version__,))
+        print("TheTVDB API version: %s" % (tvdb_v4.__version__,))
         print("python version: %s" % (sys.version,))
         sys.exit(0)
 
@@ -537,6 +527,8 @@ def main():
     except UserAbort as errormsg:
         opter.error(errormsg)
     except SkipBehaviourAbort as errormsg:
+        opter.error(errormsg)
+    except ConfigValueError as errormsg:
         opter.error(errormsg)
 
 

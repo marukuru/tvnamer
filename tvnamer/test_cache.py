@@ -1,7 +1,6 @@
 # type: ignore # FIXME: lazy
 
 import os
-import types
 
 import requests_cache.backends  # noqa: E402
 import requests_cache.backends.base  # noqa: E402
@@ -83,6 +82,4 @@ def get_test_cache_session():
         include_get_headers=True,
         allowable_codes=(200, 404),
     )
-    import tvdb_api
-    sess.cache.create_key = types.MethodType(tvdb_api.create_key, sess.cache)
     return sess

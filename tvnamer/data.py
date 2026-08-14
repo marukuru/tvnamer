@@ -4,9 +4,8 @@ import datetime
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Dict, List, Union, Tuple, Any
 
-import tvdb_api
-
 from tvnamer.config import Config
+from tvnamer.tvdb_v4 import TvdbError, ShowNotFound as TvdbShowNotFound, UserAbort as TvdbUserAbort
 from tvnamer.tvnamer_exceptions import (
     InvalidPath,
     InvalidFilename,
@@ -36,6 +35,29 @@ def _replace_output_series_name(seriesname):
     """
 
     return Config['output_series_replacements'].get(seriesname, seriesname)
+
+
+def _episode_number(episode):
+    """Return an episode's number, accepting v4's numeric JSON values."""
+    value = episode.get('number')
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _absolute_number(episode):
+    try:
+        return int(episode.get('absoluteNumber'))
+    except (TypeError, ValueError):
+        return None
+
+
+def _episode_name(episode, episode_number):
+    name = episode.get('name')
+    if not name:
+        raise EpisodeNameNotFound("Could not find episode name for %s" % episode_number)
+    return name
 
 
 
@@ -198,51 +220,50 @@ class BaseInfo(metaclass=ABCMeta):
         raise NotImplemented # pragma: nocover
 
     def populate_from_tvdb(self, tvdb_instance, force_name=None, series_id=None):
-        # mypy: ignore # type: (tvdb_api.Tvdb, Optional[Any], Optional[Any]) -> None
-        """Queries the tvdb_api.Tvdb instance for episode name and corrected
+        # type: (Any, Optional[Any], Optional[Any]) -> None
+        """Queries the TVDB v4 client for episode name and corrected
         series name.
         If series cannot be found, it will warn the user. If the episode is not
         found, it will use the corrected show name and not set an episode name.
         If the site is unreachable, it will warn the user. If the user aborts
-        it will catch tvdb_api's user abort error and raise tvnamer's
+        it will catch the v4 client's user-abort error and raise tvnamer's
         """
 
         # FIXME: MOve this into each subclass - too much hasattr/isinstance
         try:
             if series_id is None:
-                show = tvdb_instance[force_name or self.seriesname]
+                show = tvdb_instance.search(force_name or self.seriesname)
             else:
                 series_id = int(series_id)
-                tvdb_instance._getShowData(series_id, Config['language'])
-                show = tvdb_instance[series_id]
-        except tvdb_api.tvdb_error as errormsg:
-            raise DataRetrievalError("Error with www.thetvdb.com: %s" % errormsg)
-        except tvdb_api.tvdb_shownotfound:
+                show = tvdb_instance.get_series(series_id)
+        except TvdbShowNotFound:
             # No such series found.
             raise ShowNotFound("Show %s not found on www.thetvdb.com" % self.seriesname)
-        except tvdb_api.tvdb_userabort as error:
+        except TvdbUserAbort as error:
             raise UserAbort("%s" % error)
+        except TvdbError as errormsg:
+            raise DataRetrievalError("Error with www.thetvdb.com: %s" % errormsg)
         else:
             # Series was found, use corrected series name
-            self.seriesname = _replace_output_series_name(show['seriesName'])
+            self.seriesname = _replace_output_series_name(show.name)
 
         if isinstance(self, DatedEpisodeInfo):
             # Date-based episode
             epnames = []
             for cepno in self.episodenumbers:
                 try:
-                    sr = show.aired_on(cepno)
+                    sr = [episode for episode in show.episodes if episode.get('aired') == str(cepno)]
                     if len(sr) > 1:
                         # filter out specials if multiple episodes aired on the day
-                        sr = [s for s in sr if s['seasonnumber'] != '0']
+                        sr = [s for s in sr if s.get('seasonNumber') not in (0, '0')]
 
                     if len(sr) > 1:
                         raise EpisodeNotFound(
                             "Ambigious air date %s, there were %s episodes on that day"
                             % (cepno, len(sr))
                         )
-                    epnames.append(sr[0]['episodeName'])
-                except tvdb_api.tvdb_episodenotfound:
+                    epnames.append(_episode_name(sr[0], cepno))
+                except (IndexError, KeyError):
                     raise EpisodeNotFound(
                         "Episode that aired on %s could not be found" % (cepno)
                     )
@@ -258,23 +279,29 @@ class BaseInfo(metaclass=ABCMeta):
         epnames = []
         for cepno in self.episodenumbers:
             try:
-                episodeinfo = show[seasonnumber][cepno]
+                matching = [episode for episode in show.episodes
+                            if _episode_number(episode) == cepno and episode.get('seasonNumber') == seasonnumber]
+                if not matching:
+                    if not any(episode.get('seasonNumber') == seasonnumber for episode in show.episodes):
+                        raise SeasonNotFound
+                    raise EpisodeNotFound
+                episodeinfo = matching[0]
 
-            except tvdb_api.tvdb_seasonnotfound:
+            except SeasonNotFound:
                 raise SeasonNotFound(
                     "Season %s of show %s could not be found"
                     % (seasonnumber, self.seriesname)
                 )
 
-            except tvdb_api.tvdb_episodenotfound:
+            except EpisodeNotFound:
                 # Try to search by absolute number
-                sr = show.search(cepno, "absoluteNumber")
+                sr = [episode for episode in show.episodes if _absolute_number(episode) == cepno]
                 if len(sr) > 1:
                     # For multiple results try and make sure there is a direct match
                     unsure = True
                     for e in sr:
-                        if int(e['absoluteNumber']) == cepno:
-                            epnames.append(e['episodeName'])
+                        if _absolute_number(e) == cepno:
+                            epnames.append(_episode_name(e, cepno))
                             unsure = False
                     # If unsure error out
                     if unsure:
@@ -283,17 +310,15 @@ class BaseInfo(metaclass=ABCMeta):
                             % (cepno, len(sr))
                         )
                 elif len(sr) == 1:
-                    epnames.append(sr[0]['episodeName'])
+                    epnames.append(_episode_name(sr[0], cepno))
                 else:
                     raise EpisodeNotFound(
                         "Episode %s of show %s, season %s could not be found (also tried searching by absolute episode number)"
                         % (cepno, self.seriesname, seasonnumber)
                     )
 
-            except tvdb_api.tvdb_attributenotfound:
-                raise EpisodeNameNotFound("Could not find episode name for %s" % cepno)
             else:
-                epnames.append(episodeinfo['episodeName'])
+                epnames.append(_episode_name(episodeinfo, cepno))
 
         self.episodename = epnames
 

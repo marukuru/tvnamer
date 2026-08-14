@@ -12,8 +12,6 @@ import logging
 import platform
 import errno
 
-from tvdb_api import Tvdb
-
 import tvnamer
 from tvnamer.config import Config
 from tvnamer.tvnamer_exceptions import (

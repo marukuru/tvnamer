@@ -9,15 +9,34 @@ from typing import Any
 
 from helpers import assertEquals
 
-from tvnamer.main import TVNAMER_API_KEY
 from tvnamer.data import (EpisodeInfo, DatedEpisodeInfo, NoSeasonEpisodeInfo)
 from test_files import files
 
-from tvdb_api import Tvdb
+from tvnamer.tvdb_v4 import Series
 
 
-def verify_name_gen(curtest, tvdb_instance):
-    # type: (Any, Tvdb) -> None
+class TestTvdb(object):
+    """Deterministic v4-shaped data generated from the test expectations."""
+    def __init__(self, test):
+        self.test = test
+
+    def search(self, _name):
+        episodes = []
+        for number, name in zip(self.test['episodenumbers'], self.test['episodenames']):
+            if isinstance(number, datetime.date):
+                episodes.append({'aired': str(number), 'name': name, 'seasonNumber': 1})
+            else:
+                episodes.append({
+                    'number': number,
+                    'seasonNumber': self.test.get('seasonnumber') or 1,
+                    'name': name,
+                    'absoluteNumber': number,
+                })
+        return Series(1, self.test['correctedseriesname'], episodes)
+
+
+def verify_name_gen(curtest):
+    # type: (Any) -> None
     if "seasonnumber" in curtest:
         ep = EpisodeInfo(
             seriesname = curtest['parsedseriesname'],
@@ -32,7 +51,7 @@ def verify_name_gen(curtest, tvdb_instance):
             seriesname = curtest['parsedseriesname'],
             episodenumbers = curtest['episodenumbers'])
 
-    ep.populate_from_tvdb(tvdb_instance, force_name = curtest.get("force_name"))
+    ep.populate_from_tvdb(TestTvdb(curtest), force_name=curtest.get("force_name"))
 
     assert ep.seriesname is not None, "Corrected series name was none"
     assert ep.episodename is not None, "Episode name was None"
@@ -44,13 +63,9 @@ def verify_name_gen(curtest, tvdb_instance):
 def test_name_generation_on_testfiles():
     # type: () -> None
 
-    # Test data stores episode names in English, language= is normally set
-    # via the configuration, same with search_all_languages.
-
-    tvdb_instance = Tvdb(search_all_languages=True, cache=True, language='en', apikey=TVNAMER_API_KEY)
     for category, testcases in files.items():
         for curtest in testcases:
-            verify_name_gen(curtest, tvdb_instance)
+            verify_name_gen(curtest)
 
 
 def test_single_episode():

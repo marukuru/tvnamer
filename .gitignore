@@ -8,3 +8,4 @@ htmlcov/*
 /.mypy_cache
 /.eggs
 /dist
+/.venv

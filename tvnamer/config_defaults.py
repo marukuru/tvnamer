@@ -75,7 +75,7 @@ if typing.TYPE_CHECKING:
 
 # fmt: off
 defaults = {
-    # Custom API key from www.thetvdb.com - if None, uses tvnamer's default key
+    # Required TheTVDB API v4 key. Set it in tvnamer.json.
     'tvdb_api_key': None,
 
     # Select first series search result
