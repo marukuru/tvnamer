@@ -14,7 +14,9 @@ def test_ambiguity_fix():
 
     conf = """
     {"always_rename": true,
-    "select_first": true}
+    "select_first": true,
+    "search_all_languages": false,
+    "language": "en"}
     """
 
     out_data = run_tvnamer(

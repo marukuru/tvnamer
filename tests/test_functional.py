@@ -222,7 +222,7 @@ def test_filename_already_exists():
 
     out_data = run_tvnamer(
         with_files = ['Scrubs - [01x01] - My First Day.avi', 'Scrubs.s01e01.avi'],
-        with_input = "1\ny\n")
+        with_input = "1\n1\ny\n")
 
     expected_files = ['Scrubs - [01x01] - My First Day.avi', 'Scrubs.s01e01.avi']
 

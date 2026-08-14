@@ -37,7 +37,7 @@ def test_replace_input_with_id():
         with_config = """
 {
     "input_series_replacements": {
-        "seriesnamegoeshere": 76156},
+        "seriesnamegoeshere": "Scrubs"},
     "always_rename": true,
     "select_first": true
 }
@@ -78,7 +78,7 @@ def test_replacements_mulitple_Files():
     "select_first": true,
     "skip_file_on_error": false,
     "input_series_replacements": {
-        "Example": 153021
+        "Example": "The Walking Dead"
     }
     }
     """
