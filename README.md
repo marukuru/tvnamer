@@ -1,6 +1,6 @@
 # `tvnamer`
 
-[![PyPI][pypi-img]][pypi-link] [![Build Status][build-img]][build-link] [![codecov][coverage-img]][coverage-link]
+[![CI](https://github.com/marukuru/tvnamer/actions/workflows/main.yml/badge.svg)](https://github.com/marukuru/tvnamer/actions/workflows/main.yml)
 
 `tvnamer` is a utility to rename files from `some.show.s01e03.blah.abc.avi` to `Some Show - [01x03] - The Episode Name.avi` (by retrieving the episode name from [TheTVDB API v4](https://thetvdb.com/api-information)).
 
@@ -17,30 +17,6 @@ using the application:
 }
 ```
 
-[build-link]: https://travis-ci.org/dbr/tvnamer
-[build-img]: https://github.com/dbr/tvnamer/workflows/CI/badge.svg
-[pypi-link]: https://pypi.org/project/tvnamer/
-[pypi-img]: https://img.shields.io/pypi/v/tvnamer
-[coverage-link]: https://codecov.io/gh/dbr/tvnamer
-[coverage-img]: https://codecov.io/gh/dbr/tvnamer/branch/master/graph/badge.svg
-
-## Installing
-
-The "official" way to install `tvnamer` is via `pip`:
-
-    pip install tvnamer
-
-This installs the `tvnamer` command-line tool and the requirements from [the `tvnamer` package on PyPI](https://pypi.python.org/pypi/tvnamer/)
-
-Alternatively, the community have packaged tvnamer in various platform/distro specific package managers, including:
-
-1. [Homebrew for OS X](https://formulae.brew.sh/formula/tvnamer) - `brew install tvnamer`
-2. [Debian](https://tracker.debian.org/pkg/tvnamer) - `apt-get install tvnamer`
-3. [FreeBSD/DragonFlyBSD/MacPorts](https://www.freshports.org/multimedia/py-tvnamer) - `pkg install py36-tvnamer` etc
-4. [Nix package manager](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/python-modules/tvnamer/default.nix) - `nix-env -iA nixpkgs.python37Packages.tvnamer`
-
-Although not recommended for general use, see [`CONTRIBUTING.md`](./CONTRIBUTING.md) for details on installing the unstable development version.
-
 ## Features
 
 - Interactive command line based interface, with a non-interactive "batch" mode for automation.
@@ -50,12 +26,6 @@ Although not recommended for general use, see [`CONTRIBUTING.md`](./CONTRIBUTING
 - Support for multi-episode files, such as `scrubs.s01e23e24.avi`
 - Extensive configuration options (via a JSON config file) and command-line arguments, including output name customising, series name replacements
 - Support for moving files to specific location after renaming (`/media/tv/{series name}/season {seasonnumber}/` for example)
-
-## Bugs?
-
-Please file issues on tvnamer's [Github Issues page](http://github.com/dbr/tvnamer/issues)
-
-Please make tickets for any possible bugs or feature requests, or if you discover a filename format that tvnamer cannot parse (as long as a reasonably common format, and has enough information to be parsed!), or if you are struggling with the a custom configuration (please state your desired filename output, and what problems you are encountering)
 
 ## Basic usage
 
