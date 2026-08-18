@@ -44,6 +44,7 @@ def test_autogen_names():
         '%(seriesname)s - s%(seasno)de%(epno)d - the wrong ep name.avi',  # seriesname - s01e02 - the wrong ep name.avi
         '%(seriesname)s - s%(seasno)de%(epno)d - the wrong ep name.avi',  # seriesname - s01e02 - the_wrong_ep_name!.avi
         '%(seriesname)s %(year)d S%(seasno)02dE%(epno)02d ep name.mkv',     # seriesname year s01e02 epname.mkv
+        '%(seriesname)ss%(seasno)02de%(epno)02d.ext',                       # seriesnames01e02.ext
     ]
 
     test_data = [

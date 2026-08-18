@@ -286,6 +286,13 @@ defaults = {
         [xX](?P<episodenumberend>[0-9]+))        # last episode number (x25)
         [^\/]*$''',
 
+        # Add pattern for filenames ending with s01e01.mkv
+        r'''
+        ^((?P<seriesname>.+?))                   # show name
+        [Ss](?P<seasonnumber>[0-9]+)             # s01
+        [Ee](?P<episodenumber>[0-9]+)            # e01
+        \.[^\/]*$''',
+
         # foo.1x23x24*
         r'''
         ^((?P<seriesname>.+?)[ \._\-])?          # show name
