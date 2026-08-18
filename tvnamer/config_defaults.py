@@ -288,7 +288,7 @@ defaults = {
 
         # Add pattern for filenames ending with s01e01.mkv
         r'''
-        ^((?P<seriesname>.+?))                   # show name
+        ^((?P<seriesname>.*?[^ \._\-]))          # show name
         [Ss](?P<seasonnumber>[0-9]+)             # s01
         [Ee](?P<episodenumber>[0-9]+)            # e01
         \.[^\/]*$''',
