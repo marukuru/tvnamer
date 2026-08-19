@@ -393,7 +393,7 @@ def tvnamer(paths):
     episodes_found.sort(key=lambda x: x.sortable_info())
 
     # episode sort order
-    if Config["order"] == "dvd":
+    if Config["order"].lower() == "dvd":
         dvdorder = True
     else:
         dvdorder = False
